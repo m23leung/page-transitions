@@ -14,9 +14,9 @@ const leaveAnimation = (current, done) => {
     const arrow = current.querySelector('.showcase-arrow');
 
     return (
-        tlLeave.fromTo(arrow, { opacity: 1, y: 0 }, { opacity: 0, y: 50 }),
+        tlLeave.fromTo(arrow, { opacity: 1, y: 0 }, { opacity: 0, y: 50, onComplete: done }),
         tlLeave.fromTo(product, { opacity: 1, y: 0 }, { opacity: 0, y: 100 }, "<"),
-        tlLeave.fromTo(text, { opacity: 1, y: 0 }, { opacity: 0, y: 100, onComplete: done }, "<"),
+        tlLeave.fromTo(text, { opacity: 1, y: 0 }, { opacity: 0, y: 100 }, "<"),
         tlLeave.fromTo(circles, { opacity: 1, y: 0 }, { opacity: 0, y: -200, stagger: 0.15, ease: 'back.out(1.7)', duration: 1, }, "<")
     );
 };
@@ -28,13 +28,23 @@ const enterAnimation = (current, done, gradient) => {
     const arrow = current.querySelector('.showcase-arrow');
 
     return (
-        tlEnter.fromTo(arrow, { opacity: 0, y: 50 }, { opacity: 1, y: 0 }),
+        tlEnter.fromTo(arrow, { opacity: 0, y: 50 }, { opacity: 1, y: 0, onComplete: done }),
         tlEnter.to('body', { background: gradient }, "<"),
-        tlEnter.fromTo(product, { opacity: 0, y: -100 }, { opacity: 1, y: 1 }, "<"),
-        tlEnter.fromTo(text, { opacity: 0, y: 100 }, { opacity: 1, y: 0, onComplete: done }, "<"),
+        tlEnter.fromTo(product, { opacity: 0, y: -100 }, { opacity: 1, y: 0 }, "<"),
+        tlEnter.fromTo(text, { opacity: 0, y: 100 }, { opacity: 1, y: 0 }, "<"),
         tlEnter.fromTo(circles, { opacity: 0, y: -200 }, { opacity: 1, y: 0, stagger: 0.15, ease: 'back.out(1.7)', duration: 1, }, "<")
     );
 };
+
+productEnterAnimation = (next, done) => {
+    tlEnter.fromTo(next, { y: '100%'}, { y: '0%'});
+    // Cards to stagger in
+    tlEnter.fromTo('.card', { opacity: 0, y: 50 }, { opacity: 1, y: 0, stagger: 0.1, onComplete: done });
+}
+
+productLeaveAnimation = (current, done) => {
+    tlLeave.fromTo(current, { y: "0%"}, { y: "100%", onComplete: done });
+}
 
 // Run animations
 barba.init({
@@ -66,6 +76,23 @@ barba.init({
                 let next = data.next.container;
                 let gradient = getGradient(data.next.namespace);
                 enterAnimation(next, done, gradient);
+            }
+        },
+        // product page animation
+        {
+            name: 'product-transition',
+            sync: true,
+            from: { namespace: ['handbag','product','boot','hat']},
+            to: { namespace: ["product", 'handbag','product','product'] },
+            enter(data) {
+                const done = this.async();
+                let next = data.next.container;
+                productEnterAnimation(next, done);
+            },
+            leave(data) {
+                const done = this.async();
+                let current = data.current.container;
+                productLeaveAnimation(current, done);
             }
         }
     ]
